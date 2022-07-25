@@ -32,7 +32,7 @@ def dlwait(path):
 # Argparse initialization
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--s', metavar='search', type=str, nargs=1, help='A query for the download')
+parser.add_argument('--s', metavar='search', type=str, action='store', help='A query for the download')
 
 parser.add_argument('--n', metavar='quantity', type=int, default=0, help='number of search results desired')
 
