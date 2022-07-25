@@ -2,7 +2,7 @@
 Python tool allowing easy books downloads from the terminal 
 
 ## Features 
-- Bypass z-library's randomly generated links to downloads, which is a roadblock to downloads
+- Bypass z-library's randomly generated links to downloads
 - Obtain a specified number of results
 
 ## Installation
