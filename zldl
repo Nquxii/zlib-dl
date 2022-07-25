@@ -1,7 +1,9 @@
+#! /usr/bin/env python3
 import time
 import os
 import logging
 import sys
+import argparse
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -10,18 +12,9 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Disable unsightly webdriver-manager log messages
-logging.getLogger('WDM').setLevel(logging.NOTSET)
-
-chrome_options = Options()
-
-# Include this to remove GUI
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--disable-extensions")
-
 DL_PATH = os.path.dirname(os.path.realpath(__file__)) + '/assets/'
 
-# continues when the download is finished
+# Detects download status & time
 def dlwait(path):
     seconds = 0
     dl_wait = True
@@ -36,6 +29,28 @@ def dlwait(path):
         seconds += 1
     return seconds
 
+# Argparse initialization
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--s', metavar='search', type=str, nargs=1, help='A query for the download')
+
+parser.add_argument('--n', metavar='quantity', type=int, default=0, help='number of search results desired')
+
+parser.add_argument('--p', metavar='pages', type=int, default=1, help='number of pages to search in')
+
+args = parser.parse_args()
+
+# Disable unsightly webdriver-manager log messages
+os.environ['WDM_LOG_LEVEL'] = '0'
+os.environ['WDM_LOG'] = str(logging.NOTSET)
+logging.getLogger('WDM').setLevel(logging.NOTSET)
+
+chrome_options = Options()
+
+# Include this to remove GUI
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--disable-extensions")
+
 driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
 
 # Enable downloads in selenium
@@ -45,7 +60,9 @@ params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'do
 command_result = driver.execute("send_command", params)
 
 # Search and init download
-search = "Siddartha"
+search = args.s
+result_count = args.n
+page_count = args.p
 
 start_url = f"https://b-ok.cc/s/{search}"
 
@@ -54,9 +71,9 @@ sresults = []
 
 driver.get(start_url)
 
+# loop through anchor tags 
 anchor_tags = driver.find_elements(By.TAG_NAME, "a")
 
-# loop through anchor tags 
 for el in anchor_tags:
     # element's href
     href = str(el.get_attribute('href'))
@@ -65,31 +82,33 @@ for el in anchor_tags:
     if '/book/' in href:
         sresults.append(href)
 
-result_count = 2
-for x in range(result_count):
-    driver.get(sresults[x])
-    title = driver.find_element(By.TAG_NAME, 'h1').text
-    
-    try:
-        # book information
-        info = driver.find_element(By.CLASS_NAME, "bookDetailsBox").text
-    except NoSuchElementException:
-        info = "Error receiving book details"
-    
-    # Split data
-    info = info.split("\n")
-    
-    print(f'[{x+1}] {title}\n')
-    
-    # find properties in info and list it
-    for p in info:
-        if ":" in p:
-            print("\t", p, end=" ")
-        else:
-            print(p)
+if result_count == 0:
+    result_count = len(sresults)
 
-    print()
-
+for pcount in range(page_count):
+    for book in range(result_count):
+        driver.get(f'{sresults[book]}?page={pcount}')
+        title = driver.find_element(By.TAG_NAME, 'h1').text
+        
+        try:
+            # book information
+            info = driver.find_element(By.CLASS_NAME, "bookDetailsBox").text
+        except NoSuchElementException:
+            info = "Error receiving book details"
+        
+        # Split data
+        info = info.split("\n")
+        
+        print(f'[{book+1}] {title}\n')
+        
+        # find properties in info and list it
+        for p in info:
+            if ":" in p:
+                print("\t", p, end=" ")
+            else:
+                print(p)
+    
+        print()
 
 book = int(input("\nEnter desired download: "))
 
