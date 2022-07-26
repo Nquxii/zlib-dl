@@ -4,6 +4,7 @@ import os
 import logging
 import sys
 import argparse
+import json
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -12,31 +13,46 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
+# Default download path -> ./assets/{book}
 DL_PATH = os.path.dirname(os.path.realpath(__file__)) + '/assets/'
+
+# Read config file to determine if path is set
+with open('config.json', 'r') as f:
+    config = json.load(f)
+     
+    if config['download_path'] != '':
+        DL_PATH = config['download_path'] 
 
 # Detects download status & time
 def dlwait(path):
     seconds = 0
     dl_wait = True
-    while dl_wait: # and seconds < 20:
+    while dl_wait:
         time.sleep(1)
         dl_wait = False
-        
+         
         for book in os.listdir(path):
             if book.endswith('.crdownload'):
                 dl_wait = True
-        
+             
         seconds += 1
+     
     return seconds
 
 # Argparse initialization
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--s', metavar='search', type=str, action='store', help='A query for the download')
+parser.add_argument('path', metavar='path', type=str, default=DL_PATH, action='store',
+                    nargs='?', help='A path for the download')
 
-parser.add_argument('--n', metavar='quantity', type=int, default=0, help='number of search results desired')
+parser.add_argument('--s', metavar='search', type=str, action='store',
+                    required=True, help='A search query for the download')
 
-parser.add_argument('--p', metavar='pages', type=int, default=1, help='number of pages to search in')
+parser.add_argument('--n', metavar='quantity', type=int, default=0, 
+                    help='Number of search results desired')
+
+parser.add_argument('--p', metavar='pages', type=int, default=1, 
+                    help='Number of pages to search in')
 
 args = parser.parse_args()
 
@@ -47,26 +63,28 @@ logging.getLogger('WDM').setLevel(logging.NOTSET)
 
 chrome_options = Options()
 
-# Include this to remove GUI
+# Include this to remove GUI and extensions for the sake of simplicity
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-extensions")
 
+# Necessary variables
 driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
 
-# Enable downloads in selenium
-driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
-
-params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': 'assets/'}}
-command_result = driver.execute("send_command", params)
-
-# Search and init download
+DL_PATH = args.path
 search = args.s
 result_count = args.n
 page_count = args.p
 
+# Enable downloads in selenium
+driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
+
+params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': DL_PATH}}
+command_result = driver.execute("send_command", params)
+
+# Initial query for search
 start_url = f"https://b-ok.cc/s/{search}"
 
-# search results
+# Search and init download
 sresults = []
 
 driver.get(start_url)
@@ -87,7 +105,7 @@ if result_count == 0:
 
 for pcount in range(page_count):
     for book in range(result_count):
-        driver.get(f'{sresults[book]}?page={pcount}')
+        driver.get(f'{sresults[book]}?page={pcount+1}')
         title = driver.find_element(By.TAG_NAME, 'h1').text
         
         try:
@@ -107,7 +125,7 @@ for pcount in range(page_count):
                 print("\t", p, end=" ")
             else:
                 print(p)
-    
+         
         print()
 
 book = int(input("\nEnter desired download: "))
@@ -116,13 +134,16 @@ if book == 0:
     driver.quit()
     sys.exit("No download specified. Exiting..")
 
-# Identify book and click download button
+# Identify selected book and click download button
 driver.get(sresults[book - 1])
 
+# Obtain title and click 'download' button
 title = driver.find_element(By.TAG_NAME, 'h1').text
 driver.find_element(By.CLASS_NAME, "dlButton").click()
 
-dltime = dlwait(DL_PATH)
+print("Downloading {title}.. ")
 
-print(f"Successfully downloaded {title}. \nElapsed time (seconds): {dltime}")
+dl_time = dlwait(DL_PATH)
+
+print(f"Successfully downloaded {title}. \nElapsed time (seconds): {dl_time}")
 driver.quit()
