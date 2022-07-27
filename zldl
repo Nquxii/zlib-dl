@@ -13,6 +13,8 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
+start_time = time.time()
+
 # Default download path -> ./assets/{book}
 DL_PATH = os.path.dirname(os.path.realpath(__file__)) + '/assets/'
 
@@ -84,21 +86,17 @@ command_result = driver.execute("send_command", params)
 # Initial query for search
 start_url = f"https://b-ok.cc/s/{search}"
 
-# Search and init download
+# Search and begin download
 sresults = []
 
 driver.get(start_url)
 
-# loop through anchor tags 
-anchor_tags = driver.find_elements(By.TAG_NAME, "a")
+# every link in '/s/{search}'
+book_links = driver.find_elements(By.XPATH, '//a[contains(@href,"/book/")]')
 
-for el in anchor_tags:
-    # element's href
+for el in book_links:
     href = str(el.get_attribute('href'))
-    
-    # if href refers to a book, log it as a search result
-    if '/book/' in href:
-        sresults.append(href)
+    sresults.append(href)
 
 if result_count == 0:
     result_count = len(sresults)
@@ -109,7 +107,7 @@ for pcount in range(page_count):
         title = driver.find_element(By.TAG_NAME, 'h1').text
         
         try:
-            # book information
+            # Book information
             info = driver.find_element(By.CLASS_NAME, "bookDetailsBox").text
         except NoSuchElementException:
             info = "Error receiving book details"
@@ -128,22 +126,32 @@ for pcount in range(page_count):
          
         print()
 
+runtime = "%s" % round(time.time() - start_time, 4)
+
 book = int(input("\nEnter desired download: "))
 
 if book == 0:
     driver.quit()
     sys.exit("No download specified. Exiting..")
 
-# Identify selected book and click download button
-driver.get(sresults[book - 1])
+# Identify selected book (link) and click download button
+selected_book = sresults[book - 1]
+
+driver.get(selected_book)
 
 # Obtain title and click 'download' button
 title = driver.find_element(By.TAG_NAME, 'h1').text
-driver.find_element(By.CLASS_NAME, "dlButton").click()
 
-print("Downloading {title}.. ")
+try: 
+    driver.find_element(By.CLASS_NAME, "dlButton").click()
+except:
+    sys.exit(f'''Unable to download book {selected_book}.
+                 Link removed by legal owner. ''')
+
+print(f"Downloading {title}.. ")
 
 dl_time = dlwait(DL_PATH)
 
-print(f"Successfully downloaded {title}. \nElapsed time (seconds): {dl_time}")
+print(f'Successfully downloaded {title}. ({runtime} seconds)')
+
 driver.quit()
