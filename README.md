@@ -36,5 +36,15 @@ If none of these options are available, the program will use ./assets/ as its do
 ### Example
 View 5 search results for "The Pragmatic Programmer". Download the resulting file in /home/johndoe/Documents/books
 ```
-python3 zldl /home/johndoe/Documents/books --s "The Pragmatic Programmer" --n 5
+python3 zldl /home/johndoe/Documents/books --s "The Pragmatic Programmer"
+```
+
+View **all** search results on the first page for "Don Quixote". Download the resulting file in ./assets/ (assuming no set path in config.json)
+```
+python3 zldl --s "Don Quixote" --n 0
+```
+
+View 3 pages of **all** search results for "Deep Work". Download the resulting file in ./assets/ (assuming no set path in config.json)
+```
+python3 zldl --s "Don Quixote" --n 0 --p 3
 ```
