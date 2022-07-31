@@ -46,5 +46,5 @@ python3 zldl --s "Don Quixote" --n 0
 
 View 3 pages of **all** search results for "Deep Work". Download the resulting file in ./assets/ (assuming no set path in config.json)
 ```
-python3 zldl --s "Don Quixote" --n 0 --p 3
+python3 zldl --s "Deep Work" --n 0 --p 3
 ```
