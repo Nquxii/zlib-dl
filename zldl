@@ -13,7 +13,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
-
 # Default download path -> ./assets/{book}
 DL_PATH = os.path.dirname(os.path.realpath(__file__)) + '/assets/'
 
@@ -26,15 +25,12 @@ with open('config.json', 'r') as f:
 
 # Detects download status & time
 def dlwait(path):
-    '''
-    wait until the file download is completed; will not work if a corrupted downlod is already in 
-    the given path.
-    '''
+    ''' Wait until the file download is completed Will not work if a corrupted downlod is already 
+    in the given path. '''
     start_time = time.time()
     dl_wait = True
     
     while dl_wait:
-        time.sleep(1)
         dl_wait = False
          
         for book in os.listdir(path):
@@ -69,7 +65,7 @@ logging.getLogger('WDM').setLevel(logging.NOTSET)
 chrome_options = Options()
 
 # Include this to remove GUI and extensions for the sake of simplicity
-chrome_options.add_argument("--headless")
+#chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-extensions")
 
 # Necessary variables
@@ -132,7 +128,6 @@ for pcount in range(page_count):
 book = int(input("\nEnter desired download: "))
 
 if book == 0:
-    driver.quit()
     sys.exit("No download specified. Exiting..")
 
 # Identify selected book (link) and click download button
@@ -143,16 +138,19 @@ driver.get(selected_book)
 # Obtain title and click 'download' button
 title = driver.find_element(By.TAG_NAME, 'h1').text
 
-try: 
+# Handle ip rate limit and removed links
+if 'unavailable' in driver.find_element(By.CLASS_NAME, 'dlButton').text:
+    sys.exit(f'ERROR: Unable to download book {selected_book}.\nLink removed by legal owner.')
+else:
     driver.find_element(By.CLASS_NAME, "dlButton").click()
-except:
-    sys.exit(f'''Unable to download book {selected_book}.
-                 Link removed by legal owner. ''')
+
+if '/dl/' in driver.current_url:
+    if 'Daily limit' in driver.find_element(By.TAG_NAME, "h1").text:
+        limit_error = driver.find_element(By.CLASS_NAME, "download-limits-error__message").text
+        sys.exit(f'\nERROR: {limit_error}')
 
 print(f"Downloading {title}.. ")
-
 dl_time = dlwait(DL_PATH)
 
 print(f'Successfully downloaded {title}. ({dl_time} seconds)')
-
 driver.quit()
