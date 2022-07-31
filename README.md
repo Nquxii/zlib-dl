@@ -1,6 +1,8 @@
 # zlib-dl
 Python tool allowing easy books downloads from the terminal 
 
+<img src="images/demo-f.gif" align="center">
+
 ## Features 
 - Bypass z-library's randomly generated links to downloads
 - Obtain a specified number of results

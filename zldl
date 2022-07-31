@@ -13,7 +13,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
-start_time = time.time()
 
 # Default download path -> ./assets/{book}
 DL_PATH = os.path.dirname(os.path.realpath(__file__)) + '/assets/'
@@ -27,8 +26,13 @@ with open('config.json', 'r') as f:
 
 # Detects download status & time
 def dlwait(path):
-    seconds = 0
+    '''
+    wait until the file download is completed; will not work if a corrupted downlod is already in 
+    the given path.
+    '''
+    start_time = time.time()
     dl_wait = True
+    
     while dl_wait:
         time.sleep(1)
         dl_wait = False
@@ -36,10 +40,9 @@ def dlwait(path):
         for book in os.listdir(path):
             if book.endswith('.crdownload'):
                 dl_wait = True
-             
-        seconds += 1
      
-    return seconds
+    runtime = "%s" % round(time.time() - start_time, 4)
+    return runtime
 
 # Argparse initialization
 parser = argparse.ArgumentParser()
@@ -50,7 +53,7 @@ parser.add_argument('path', metavar='path', type=str, default=DL_PATH, action='s
 parser.add_argument('--s', metavar='search', type=str, action='store',
                     required=True, help='A search query for the download')
 
-parser.add_argument('--n', metavar='quantity', type=int, default=0, 
+parser.add_argument('--n', metavar='quantity', type=int, default=5, 
                     help='Number of search results desired')
 
 parser.add_argument('--p', metavar='pages', type=int, default=1, 
@@ -126,8 +129,6 @@ for pcount in range(page_count):
          
         print()
 
-runtime = "%s" % round(time.time() - start_time, 4)
-
 book = int(input("\nEnter desired download: "))
 
 if book == 0:
@@ -152,6 +153,6 @@ print(f"Downloading {title}.. ")
 
 dl_time = dlwait(DL_PATH)
 
-print(f'Successfully downloaded {title}. ({runtime} seconds)')
+print(f'Successfully downloaded {title}. ({dl_time} seconds)')
 
 driver.quit()
