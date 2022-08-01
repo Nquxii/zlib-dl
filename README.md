@@ -6,6 +6,8 @@ Python tool allowing easy books downloads from the terminal
 ## Features 
 - Bypass z-library's randomly generated links to downloads
 - Obtain a specified number of results
+- View several pages of results
+- Retrieve metadata without having to go onto z-library itself
 
 ## Installation
 Clone the repository and install dependencies
