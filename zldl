@@ -31,6 +31,7 @@ def dlwait(path):
     dl_wait = True
     
     while dl_wait:
+        time.sleep(1)
         dl_wait = False
          
         for book in os.listdir(path):
