@@ -23,17 +23,31 @@ Open help section
 ```
 python3 zldl --h
 ```
+
+Ensure your config.json is set if you don't want to use several parameters each time.
+
+OPTIONAL: add zldl to path (so you don't need to cd into zlib-dl every time)
+
+Linux/MacOS:
+```
+sudo cp zldl /usr/local/bin/
+```
+in this case, either specify your download directory inside the script, or use the correct parameters
+every time you run it (specifying which path to download your book is necessary if you want to use 
+only one file)
+
 ## Usage
 ```
 python3 zldl [path] --s [query] --n [number of results] --p [number of pages]
 ```
-Number of results defaults to all results available, which may not be relevant, so it is recommended to use a small value for --n, like 5.
+Number of results defaults to 5 of the top results available. Use 0 to see all search results on the page.
 
 Number of pages is only necessary for larger searches (> 50 results) and is not recommended for usability purposes.
 
 
 If a path in the command is specified, it will be used. Otherwise, the download_path in config.json will be used.
 If none of these options are available, the program will use ./assets/ as its download folder.
+Ensure that you specify a download folder if you are using zlib-dl from `$PATH`
 
 ### Example
 View 5 search results for "The Pragmatic Programmer". Download the resulting file in /home/johndoe/Documents/books
