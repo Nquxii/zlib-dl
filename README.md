@@ -28,7 +28,7 @@ Ensure your config.json is set if you don't want to use several parameters each 
 
 Add zldl to path (so you don't need to cd into zlib-dl every time) Linux/MacOS:
 ```
-ln -s zldl/main.py ~/.local/bin/script.py
+ln -s ~[CURRENT DIR]/zldl ~/.local/bin/zldl
 ```
 
 ## Usage
