@@ -1,6 +1,8 @@
 # zlib-dl
 Python tool allowing easy books downloads from the terminal 
 
+Update: as of 11/05/2022, the public version of z-library has been shut down. 
+
 <img src="images/demo-f.gif" align="center">
 
 ## Features 
